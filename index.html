@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>[Your Name] — Portfolio</title>
+  <style>
+    body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:#f7f7fb;color:#111}
+    header{background:#0f172a;color:#fff;padding:28px 18px;text-align:center}
+    nav a{color:#93c5fd;margin:0 12px;text-decoration:none;font-weight:600}
+    section{max-width:900px;margin:36px auto;padding:0 18px}
+    h1,h2{margin:6px 0}
+    footer{background:#0f172a;color:#fff;padding:12px;text-align:center;margin-top:60px}
+    /* Chat button */
+    .chat-btn{position:fixed;right:20px;bottom:24px;background:#06b6d4;border:none;padding:14px 18px;border-radius:999px;box-shadow:0 8px 20px rgba(2,6,23,0.2);cursor:pointer;font-weight:700}
+    /* Chat modal */
+    .chat-modal{position:fixed;right:20px;bottom:90px;width:360px;max-height:70vh;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(2,6,23,0.15);display:flex;flex-direction:column;overflow:hidden;font-size:14px}
+    .chat-header{padding:12px 14px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center}
+    .chat-body{padding:12px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:8px}
+    .bubble{max-width:80%;padding:10px 12px;border-radius:12px}
+    .user{align-self:flex-end;background:#06b6d4;color:#021124}
+    .bot{align-self:flex-start;background:#f1f5f9;color:#0b1220}
+    .chat-input{display:flex;padding:10px;border-top:1px solid #eee}
+    .chat-input textarea{flex:1;border-radius:8px;padding:8px;border:1px solid #ddd;resize:none;height:42px;font-family:inherit}
+    .chat-input button{margin-left:8px;padding:8px 12px;border-radius:8px;border:none;background:#0f172a;color:#fff;cursor:pointer}
+    .muted{color:#6b7280;font-size:13px}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>👋 Hi — I'm [Your Name]</h1>
+  <p class="muted">Automation Developer · Data Science & AI · Robotics enthusiast</p>
+  <nav>
+    <a href="#home">Home</a><a href="#projects">Projects</a><a href="#ideas">Ideas</a><a href="#about">About</a>
+  </nav>
+</header>
+
+<section id="home">
+  <h2>Welcome</h2>
+  <p>This is my portfolio. Click the chat button to ask about my projects, skills, or ideas.</p>
+</section>
+
+<section id="projects">
+  <h2>Projects</h2>
+  <ul>
+    <li><strong>Automation Toolkit</strong> — Scripts & Ansible playbooks to simplify ops.</li>
+    <li><strong>Robotics Sim</strong> — RL agents in PyBullet (work in progress).</li>
+    <li><strong>AI Experiments</strong> — NLU & recommendation prototypes.</li>
+  </ul>
+</section>
+
+<section id="ideas">
+  <h2>Ideas & Blog</h2>
+  <p>Short notes on experiments — AI workflow automation, robotics, and portfolio tools.</p>
+</section>
+
+<section id="about">
+  <h2>About</h2>
+  <p>I work as an Automation Developer at HCL. I'm studying Data Science & AI and want to pursue Robotics for my Master's.</p>
+</section>
+
+<footer>
+  <p>© 2025 [Your Name] — Built with GitHub Pages</p>
+</footer>
+
+<!-- Chat UI -->
+<button class="chat-btn" id="openChat">💬 Chat</button>
+
+<div id="chatModal" class="chat-modal" style="display:none">
+  <div class="chat-header">
+    <span>Portfolio Chat</span>
+    <button id="closeChat" style="background:transparent;border:none;color:#fff;cursor:pointer">✕</button>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="bot bubble">Hi — ask me about my projects, skills, or experience.</div>
+  </div>
+  <div class="chat-input">
+    <textarea id="msg" placeholder="Type a question..."></textarea>
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+  const openBtn = document.getElementById('openChat');
+  const modal = document.getElementById('chatModal');
+  const closeBtn = document.getElementById('closeChat');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatBody = document.getElementById('chatBody');
+  const msgBox = document.getElementById('msg');
+
+  openBtn.onclick = ()=> modal.style.display='flex';
+  closeBtn.onclick = ()=> modal.style.display='none';
+
+  function appendBubble(text, cls='bot'){
+    const d = document.createElement('div');
+    d.className = cls + ' bubble';
+    d.textContent = text;
+    chatBody.appendChild(d);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  async function sendMessage(){
+    const text = msgBox.value.trim();
+    if(!text) return;
+    appendBubble(text,'user');
+    msgBox.value = '';
+    appendBubble('Thinking…','bot');
+
+    // Replace this URL with your backend endpoint once ready:
+    const BACKEND_URL = 'https://YOUR_BACKEND_URL/api/chat'; // <-- update later
+
+    try {
+      // Try calling your backend (if deployed). It should return JSON { reply: "..." }
+      const resp = await fetch(BACKEND_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      if(!resp.ok) throw new Error('no backend');
+      const j = await resp.json();
+      // remove last 'Thinking…' bubble
+      const lastBot = chatBody.querySelectorAll('.bot.bubble');
+      if(lastBot.length) lastBot[lastBot.length-1].remove();
+      appendBubble(j.reply || 'Sorry, no reply from backend.','bot');
+    } catch(e) {
+      // If backend doesn't exist yet, show a demo reply:
+      const lastBot = chatBody.querySelectorAll('.bot.bubble');
+      if(lastBot.length) lastBot[lastBot.length-1].remove();
+      appendBubble("Demo reply: I can explain my projects, tools I used, and next steps. (Connect a backend to enable full AI replies.)","bot");
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+  msgBox.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }});
+</script>
+
+</body>
+</html>
